@@ -1,0 +1,20 @@
+{
+    "name": "betacie/google-analytics",
+    "description": "Google analytics PHP SDK",
+    "require": {
+        "symfony/http-foundation": "~2.1",
+        "symfony/options-resolver": "~2.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yoye",
+            "email": "y.aparici@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Betacie\\Google\\": "src/"
+        }
+    }
+}
