@@ -1,0 +1,5 @@
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/spec               export-ignore
+/phpspec.yml
+/.travis.yml

@@ -22,14 +22,12 @@ class EcommerceTracker implements TrackerInterface
     {
         $resolver = new OptionsResolver();
         $resolver->setRequired(array(
-            'transactionId', 'total',
+            'transactionId',
         ))->setDefaults(array(
-            'affiliation' => '',
-            'tax'         => '',
-            'shipping'    => '',
-            'city'        => '',
-            'state'       => '',
-            'country'     => '',
+            'affiliation' => null,
+            'tax'         => null,
+            'shipping'    => null,
+            'revenue'     => null
         ));
 
         $parameters = $resolver->resolve($parameters);
@@ -61,28 +59,85 @@ class EcommerceTracker implements TrackerInterface
     {
         $return = '';
 
-        // Render _addTrans method then clear the key in the storage
-        foreach ($this->storage->get('_addTrans', array()) as $trans) {
-            $return .= sprintf("_gaq.push(['_addTrans', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']);", $trans['transactionId'], $trans['affiliation'], $trans['total'], $trans['tax'], $trans['shipping'], $trans['city'], $trans['state'], $trans['country']);
+        foreach ($this->storage->get('_addTrans', array()) as $transaction) {
+            $return .= $this->renderAddTransaction($transaction);
         }
-
         $this->storage->clear('_addTrans');
 
-        // Render _addItem method then clear the key in the storage
         foreach ($this->storage->get('_addItem', array()) as $item) {
-            $return .= sprintf("_gaq.push(['_addItem', '%s', '%s', '%s', '%s', '%s', '%s' ]);", $item['transactionId'], $item['sku'], $item['name'], $item['category'], $item['price'], $item['quantity']);
+            $return .= $this->renderAddItem($item);
         }
-
         $this->storage->clear('_addItem');
 
-        // Render _trackTrans method then clear the key in the storage
         if ($this->storage->get('_trackTrans', false)) {
-            $return .= "_gaq.push(['_trackTrans']);";
+            $return .= $this->renderSendTransaction();
         }
-
         $this->storage->clear('_trackTrans');
 
         return $return;
     }
 
+    public function renderAddTransaction(array $transaction)
+    {
+        return sprintf(
+            'ga("ecommerce:addTransaction",%s);%s', 
+            json_encode($this->getTransactionParameters($transaction)),
+            PHP_EOL
+        );
+    }
+
+    protected function getTransactionParameters(array $transaction)
+    {
+        $parameters = [
+            'id' => $transaction['transactionId'],
+        ];
+
+        foreach([
+            'affiliation' => 'affiliation',
+            'revenue' => 'revenue',
+            'tax' => 'tax',
+            'shipping' => 'shipping',
+        ] as $label => $gaLabel) {
+            if (array_key_exists($label, $transaction)) {
+                $parameters[$gaLabel] = $transaction[$label];
+            }
+        }
+
+        return $parameters;
+    }
+
+    public function renderAddItem(array $item)
+    {
+        return sprintf(
+            'ga("ecommerce:addItem",%s);%s', 
+            json_encode($this->getItemParameters($item)),
+            PHP_EOL
+        );
+    }
+
+    protected function getItemParameters(array $item)
+    {
+        $parameters = [
+            'id' => $item['transactionId'],
+            'name' => $item['name'],
+        ];
+
+        foreach([
+            'sku',
+            'category',
+            'price',
+            'quantity',
+        ] as $label) {
+            if (array_key_exists($label, $item)) {
+                $parameters[$label] = $item[$label];
+            }
+        }
+
+        return $parameters;
+    }
+
+    public function renderSendTransaction()
+    {
+        return 'ga("ecommerce:send");'.PHP_EOL;
+    }
 }

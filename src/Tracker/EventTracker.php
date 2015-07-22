@@ -25,17 +25,9 @@ class EventTracker implements TrackerInterface
         $resolver->setRequired(array(
             'category', 'action',
         ))->setDefaults(array(
-            'label'          => '',
-            'value'          => '',
-            'noninteraction' => '',
-        ))->setNormalizers(array(
-            'noninteraction' => function(Options $options, $value) {
-                if ($value) {
-                    return 'true';
-                }
-
-                return 'false';
-            }
+            'label'          => null,
+            'value'          => null,
+            'noninteraction' => null,
         ));
         $parameters = $resolver->resolve($parameters);
 
@@ -47,7 +39,7 @@ class EventTracker implements TrackerInterface
         $return = '';
 
         foreach ($this->storage->get('_trackEvent', array()) as $event) {
-            $return .= sprintf("_gaq.push(['_trackEvent', '%s', '%s', '%s', %s, %s]);", $event['category'], $event['action'], $event['label'], $event['value'], $event['noninteraction']);
+            $return .= $this->renderEvent($event);
         }
 
         $this->storage->clear('_trackEvent');
@@ -55,4 +47,33 @@ class EventTracker implements TrackerInterface
         return $return;
     }
 
+    public function renderEvent(array $event)
+    {
+        return sprintf(
+            'ga("send","event","%s","%s",%s);%s', 
+            $event['category'],
+            $event['action'],
+            json_encode($this->getEventOptions($event)),
+            PHP_EOL
+        );
+    }
+
+    protected function getEventOptions(array $event)
+    {
+        $parameters = [];
+
+        if (isset($event['label'])) {
+            $parameters['eventLabel'] = $event['label'];
+        }
+
+        if (isset($event['value'])) {
+            $parameters['eventValue'] = $event['value'];
+        }
+
+        if (isset($event['noninteraction'])) {
+            $parameters['nonInteraction'] = $event['noninteraction'];
+        }
+
+        return $parameters;
+    }
 }

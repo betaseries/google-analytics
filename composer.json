@@ -16,5 +16,11 @@
         "psr-4": {
             "Betacie\\Google\\": "src/"
         }
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^2.2"
     }
 }

@@ -1,5 +1,6 @@
-# google-analytics
-Tracking events and ecommerce with google analytics
+# betacie/google-analytics
+
+Tracking events and e-commerce with google analytics
 
 ```php
 <?php
@@ -46,4 +47,3 @@ You could defined Storage and Tracker as Symfony service and inject them in othe
     <argument type="service" id="betacie_google.tracking_bag" />
 </service>
 ```
-
