@@ -1,0 +1,4 @@
+suites:
+    google_analytics:
+        namespace: Betacie\Google
+        psr4_prefix: Betacie\Google
